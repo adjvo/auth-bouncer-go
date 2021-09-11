@@ -17,6 +17,13 @@ type Guard struct {
 	secret   string
 }
 
+type Introspect struct {
+	AccessToken string   `json:"access_token"`
+	ClientID    string   `json:"client_id"`
+	UserID      string   `json:"user_id"`
+	Scopes      []string `json:"scopes"`
+}
+
 // NewGuard instantiates new Guard struct
 func NewGuard(domain, clientID, secret string) *Guard {
 	tr := &http.Transport{
@@ -33,7 +40,9 @@ func NewGuard(domain, clientID, secret string) *Guard {
 }
 
 // Introspect requests to Adjvo Auth server for token validation
-func (g Guard) Introspect(token string) *introspection.Response {
+func (g Guard) Introspect(token string) (Introspect, error) {
+	var introspect Introspect
+
 	req := introspection.NewRequest("POST", g.domain+"/token/introspect")
 
 	req.SetHeader("Content-Type", "application/json")
@@ -43,19 +52,34 @@ func (g Guard) Introspect(token string) *introspection.Response {
 
 	resp, err := g.client.Do(req.Build())
 	if err != nil {
-		panic(err)
+		return introspect, err
 	}
 
 	if resp.StatusCode == 401 {
-		g.Authenticate()
+		err := g.Authenticate()
+		if err != nil {
+			return introspect, err
+		}
 
 		return g.Introspect(token)
 	}
 
-	return introspection.NewIntrospectionResponse(resp)
+	r := introspection.NewIntrospectionResponse(resp)
+
+	if !r.Body.Data.Active {
+		return introspect, errors.New("token expired or invalid")
+	}
+
+	introspect.AccessToken = *r.Body.Data.AccessToken
+	introspect.ClientID = *r.Body.Data.ClientID
+	introspect.UserID = *r.Body.Data.UserID
+	introspect.Scopes = *r.Body.Data.Scopes
+
+	return introspect, nil
 }
 
-func (g Guard) Authenticate() {
+// Authenticate  requests to Adjvo Auth server for client access token
+func (g Guard) Authenticate() error {
 	req := authentication.NewRequest("POST", g.domain+"/token")
 
 	req.SetHeader("Content-Type", "application/json")
@@ -68,14 +92,16 @@ func (g Guard) Authenticate() {
 
 	resp, err := g.client.Do(req.Build())
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	if resp.StatusCode == 401 {
-		panic(errors.New(fmt.Sprintf("Client authentication failed with status code %d", resp.StatusCode)))
+		return errors.New("invalid client credentials")
 	}
 
 	r := authentication.NewAuthenticationResponse(resp)
 
 	g.token.SetCachedToken(r.Body.Data.AccessToken)
+
+	return nil
 }
