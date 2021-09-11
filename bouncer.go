@@ -9,7 +9,11 @@ import (
 	"net/http"
 )
 
-type Guard struct {
+type Guard interface {
+	Introspect(token string) (Introspect, error)
+}
+
+type guard struct {
 	client   *http.Client
 	token    *Token
 	domain   string
@@ -24,13 +28,13 @@ type Introspect struct {
 	Scopes      []string `json:"scopes"`
 }
 
-// NewGuard instantiates new Guard struct
-func NewGuard(domain, clientID, secret string) *Guard {
+// NewGuard instantiates new guard struct
+func NewGuard(domain, clientID, secret string) *guard {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 
-	return &Guard{
+	return &guard{
 		client:   &http.Client{Transport: tr},
 		token:    NewToken(),
 		domain:   domain,
@@ -40,7 +44,7 @@ func NewGuard(domain, clientID, secret string) *Guard {
 }
 
 // Introspect requests to Adjvo Auth server for token validation
-func (g Guard) Introspect(token string) (Introspect, error) {
+func (g guard) Introspect(token string) (Introspect, error) {
 	var introspect Introspect
 
 	req := introspection.NewRequest("POST", g.domain+"/token/introspect")
@@ -79,7 +83,7 @@ func (g Guard) Introspect(token string) (Introspect, error) {
 }
 
 // Authenticate  requests to Adjvo Auth server for client access token
-func (g Guard) Authenticate() error {
+func (g guard) Authenticate() error {
 	req := authentication.NewRequest("POST", g.domain+"/token")
 
 	req.SetHeader("Content-Type", "application/json")

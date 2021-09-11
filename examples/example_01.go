@@ -5,10 +5,17 @@ import (
 	"github.com/adjvo/auth-bouncer-go"
 )
 
-func main() {
-	guard := authbouncer.NewGuard("http://local.api.auth.adjvo.com", "cAZNiqsS14ELm76Q0o1U2DvGzQcOrrmkyv6f7H5UkHodE9HSdwA9MhBfLZ5H", "Zyz3NxhWwRTFFVfKPYrU0nEqkXNY3KliJrG1i2eolq7xa5ETXrYcnQBToFyS")
+// Auth example app handler
+type Auth struct {
+	authbouncer.Guard
+}
 
-	introspection, err := guard.Introspect("p3ibTOXjbXeVhRVW8VqJZmQ49E6GxMmDj5R5zXdAQNW6278pZRBgER0fqDIN")
+func main() {
+	auth := Auth{
+		Guard: authbouncer.NewGuard("http://local.api.auth.adjvo.com", "cAZNiqsS14ELm76Q0o1U2DvGzQcOrrmkyv6f7H5UkHodE9HSdwA9MhBfLZ5H", "Zyz3NxhWwRTFFVfKPYrU0nEqkXNY3KliJrG1i2eolq7xa5ETXrYcnQBToFyS"),
+	}
+
+	introspection, err := auth.Introspect("hHR0F8OrhlSoXwVUau91Dl2onEMS8zTOZnhxyzRJ51B0vLkbKLNEq1ejGicb")
 	if err != nil {
 		fmt.Println(err)
 
