@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"net/http"
 )
@@ -26,7 +27,12 @@ type Data struct {
 func NewAuthenticationResponse(resp *http.Response) *Response {
 	var body Body
 
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(resp.Body)
 
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

@@ -22,6 +22,14 @@ type Data struct {
 	ClientID    *string   `json:"client_id"`
 	UserID      *string   `json:"user_id"`
 	Scopes      *[]string `json:"scopes"`
+	User        *User     `json:"user"`
+}
+
+type User struct {
+	Email       string `json:"email"`
+	ActivatedAt string `json:"activated_at"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
 }
 
 func NewIntrospectionResponse(resp *http.Response) *Response {

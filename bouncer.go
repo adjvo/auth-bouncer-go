@@ -22,10 +22,11 @@ type guard struct {
 }
 
 type Introspect struct {
-	AccessToken string   `json:"access_token"`
-	ClientID    string   `json:"client_id"`
-	UserID      string   `json:"user_id"`
-	Scopes      []string `json:"scopes"`
+	AccessToken string             `json:"access_token"`
+	ClientID    string             `json:"client_id"`
+	UserID      string             `json:"user_id"`
+	Scopes      []string           `json:"scopes"`
+	User        introspection.User `json:"user"`
 }
 
 // NewGuard instantiates new guard struct
@@ -78,6 +79,10 @@ func (g guard) Introspect(token string) (Introspect, error) {
 	introspect.ClientID = *r.Body.Data.ClientID
 	introspect.UserID = *r.Body.Data.UserID
 	introspect.Scopes = *r.Body.Data.Scopes
+
+	if r.Body.Data.User != nil {
+		introspect.User = *r.Body.Data.User
+	}
 
 	return introspect, nil
 }

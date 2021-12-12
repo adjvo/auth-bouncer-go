@@ -15,15 +15,16 @@ func main() {
 		Guard: authbouncer.NewGuard("http://local.api.auth.adjvo.com", "cAZNiqsS14ELm76Q0o1U2DvGzQcOrrmkyv6f7H5UkHodE9HSdwA9MhBfLZ5H", "Zyz3NxhWwRTFFVfKPYrU0nEqkXNY3KliJrG1i2eolq7xa5ETXrYcnQBToFyS"),
 	}
 
-	introspection, err := auth.Introspect("hHR0F8OrhlSoXwVUau91Dl2onEMS8zTOZnhxyzRJ51B0vLkbKLNEq1ejGicb")
+	i, err := auth.Introspect("jdQkQGu0XY6ygmlwltFnpix4fXYZXtco6iGAel4BtsO1jCWZyJ6V2ZBW5ihe")
 	if err != nil {
 		fmt.Println(err)
 
 		return
 	}
 
-	fmt.Println(introspection.AccessToken)
-	fmt.Println(introspection.ClientID)
-	fmt.Println(introspection.UserID)
-	fmt.Println(introspection.Scopes)
+	fmt.Println(i.AccessToken)
+	fmt.Println(i.ClientID)
+	fmt.Println(i.UserID)
+	fmt.Println(i.Scopes)
+	fmt.Println(i.User)
 }
